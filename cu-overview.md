@@ -1,3 +1,9 @@
+# 2022 CU 22
+15.0.4322.2 and https://download.microsoft.com/download/6/e/7/6e72dddf-dfa4-4889-bc3d-e5d3a0fd11ce/SQLServer2019-KB5027702-x64.exe
+
+# 2019 CU 21
+15.0.4316.3 and https://download.microsoft.com/download/6/e/7/6e72dddf-dfa4-4889-bc3d-e5d3a0fd11ce/SQLServer2019-KB5025808-x64.exe
+
 # 2019 CU 20
 15.0.4312.2 and https://download.microsoft.com/download/6/e/7/6e72dddf-dfa4-4889-bc3d-e5d3a0fd11ce/SQLServer2019-KB5024276-x64.exe
 
@@ -27,3 +33,7 @@
 
 # 2019 CU 11
 15.0.4138.2 and http://download.windowsupdate.com/d/msdownload/update/software/updt/2021/06/sqlserver2019-kb5003249-x64_a1b2d2845c5c66d7b9fced09309537d5fa7dc540.exe
+
+----
+
+Find details of cumulative updates here: https://www.microsoft.com/en-us/download/details.aspx?id=100809
