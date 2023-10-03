@@ -6,11 +6,13 @@ ARG DEV_ISO= `
     EXP_EXE= `
     CU= `
     VERSION=`
-    TYPE=
+    TYPE=`
+    DEV_INSTANCENAME=MSSQLSERVER
 ENV DEV_ISO=$DEV_ISO `
     EXP_EXE=$EXP_EXE `
     CU=$CU `
     VERSION=$VERSION `
+    DEV_INSTANCENAME=$DEV_INSTANCENAME `
     sa_password="_" `
     attach_dbs="[]" `
     accept_eula="_" `
@@ -37,7 +39,7 @@ RUN if (-not [string]::IsNullOrEmpty($env:DEV_ISO)) { `
         Invoke-WebRequest -UseBasicParsing -Uri $env:DEV_ISO -OutFile c:\SQLServer.iso; `
         mkdir c:\installer; `
         7z x -y -oc:\installer .\SQLServer.iso; `
-        .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=MSSQLSERVER /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
+        .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=$env:DEV_INSTANCENAME /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
         remove-item c:\SQLServer.iso -ErrorAction SilentlyContinue; `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
     }
@@ -50,7 +52,11 @@ RUN if (-not [string]::IsNullOrEmpty($env:EXP_EXE)) { `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
     }
 
-RUN $SqlServiceName = 'MSSQLSERVER'; `
+RUN if ($env:DEV_INSTANCENAME -eq 'MSSQLSERVER') { `
+        $SqlServiceName = 'MSSQLSERVER'; `
+    } else { `
+        $SqlServiceName = 'MSSQL$' + $env:DEV_INSTANCENAME; `
+    } `
     if ($env:TYPE -eq 'exp') { `
         $SqlServiceName = 'MSSQL$SQLEXPRESS'; `
     } `
@@ -65,14 +71,18 @@ RUN $SqlServiceName = 'MSSQLSERVER'; `
     Stop-Service $SqlWriterServiceName; `
     Set-Service $SqlBrowserServiceName -startuptype manual ; `
     Stop-Service $SqlBrowserServiceName; `
-    $SqlTelemetryName = 'SQLTELEMETRY'; `
+    if ($env:DEV_INSTANCENAME -eq 'MSSQLSERVER') { `
+        $SqlTelemetryName = 'SQLTELEMETRY'; `
+    } else { `
+        $SqlTelemetryName = 'SQLTELEMETRY$' + $env:DEV_INSTANCENAME; `
+    } `
     if ($env:TYPE -eq 'exp') { `
         $SqlTelemetryName = 'SQLTELEMETRY$SQLEXPRESS'; `
     } `
     Set-Service $SqlTelemetryName -startuptype manual ; `
     Stop-Service $SqlTelemetryName; `
     $version = [System.Version]::Parse($env:VERSION); `
-    $id = ('mssql' + $version.Major + '.MSSQLSERVER'); `
+    $id = ('mssql' + $version.Major + '.' + $env:DEV_INSTANCENAME); `
     if ($env:TYPE -eq 'exp') { `
         $id = ('mssql' + $version.Major + '.SQLEXPRESS'); `
     } `

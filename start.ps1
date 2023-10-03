@@ -34,10 +34,16 @@ else
 
 # start the service
 Write-Host "Starting SQL Server"
-$SqlServiceName = 'MSSQLSERVER'; 
-if (-not [string]::isNullOrEmpty($env:EXP_EXE)) { 
-    $SqlServiceName = 'MSSQL$SQLEXPRESS'; 
-} 
+
+if ($env:DEV_INSTANCENAME -eq 'MSSQLSERVER') {
+    $SqlServiceName = 'MSSQLSERVER';
+} else {
+    $SqlServiceName = 'MSSQL$' + $env:DEV_INSTANCENAME;
+}
+
+if (-not [string]::isNullOrEmpty($env:EXP_EXE)) {
+    $SqlServiceName = 'MSSQL$SQLEXPRESS';
+}
 start-service $SqlServiceName
 
 if($sa_password -eq "_") {
@@ -63,13 +69,13 @@ $dbs = $attach_dbs_cleaned | ConvertFrom-Json
 if ($null -ne $dbs -And $dbs.Length -gt 0)
 {
     Write-Host "Attaching $($dbs.Length) database(s)"
-	    
-    Foreach($db in $dbs) 
-    {            
+
+    Foreach($db in $dbs)
+    {
         $files = @();
         Foreach($file in $db.dbFiles)
         {
-            $files += "(FILENAME = N'$($file)')";           
+            $files += "(FILENAME = N'$($file)')";
         }
 
         $files = $files -join ","
@@ -96,10 +102,10 @@ else
     }
 }
 
-$lastCheck = (Get-Date).AddSeconds(-2) 
-while ($true) 
-{ 
-    Get-EventLog -LogName Application -Source "MSSQL*" -After $lastCheck | Select-Object TimeGenerated, EntryType, Message	 
-    $lastCheck = Get-Date 
-    Start-Sleep -Seconds 2 
+$lastCheck = (Get-Date).AddSeconds(-2)
+while ($true)
+{
+    Get-EventLog -LogName Application -Source "MSSQL*" -After $lastCheck | Select-Object TimeGenerated, EntryType, Message
+    $lastCheck = Get-Date
+    Start-Sleep -Seconds 2
 }
