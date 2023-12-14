@@ -7,12 +7,14 @@ ARG DEV_ISO= `
     CU= `
     VERSION=`
     TYPE=`
-    DEV_INSTANCENAME=MSSQLSERVER
+    DEV_INSTANCENAME=MSSQLSERVER `
+    SQL_COLLATION_NAME=SQL_Latin1_General_CP1_CI_AS
 ENV DEV_ISO=$DEV_ISO `
     EXP_EXE=$EXP_EXE `
     CU=$CU `
     VERSION=$VERSION `
     DEV_INSTANCENAME=$DEV_INSTANCENAME `
+    SQL_COLLATION_NAME=$SQL_COLLATION_NAME `
     sa_password="_" `
     attach_dbs="[]" `
     accept_eula="_" `
@@ -39,7 +41,7 @@ RUN if (-not [string]::IsNullOrEmpty($env:DEV_ISO)) { `
         Invoke-WebRequest -UseBasicParsing -Uri $env:DEV_ISO -OutFile c:\SQLServer.iso; `
         mkdir c:\installer; `
         7z x -y -oc:\installer .\SQLServer.iso; `
-        .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=$env:DEV_INSTANCENAME /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
+        .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=$env:DEV_INSTANCENAME /SQLCOLLATION=$env:SQL_COLLATION_NAME /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
         remove-item c:\SQLServer.iso -ErrorAction SilentlyContinue; `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
     }
@@ -47,7 +49,7 @@ RUN if (-not [string]::IsNullOrEmpty($env:DEV_ISO)) { `
 RUN if (-not [string]::IsNullOrEmpty($env:EXP_EXE)) { `
         Invoke-WebRequest -UseBasicParsing -Uri $env:EXP_EXE -OutFile c:\SQLServerExpress.exe; `
         Start-Process -Wait -FilePath .\SQLServerExpress.exe -ArgumentList /qs, /x:installer ; `
-        .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=SQLEXPRESS /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
+        .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=SQLEXPRESS /SQLCOLLATION=$env:SQL_COLLATION_NAME /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
         remove-item c:\SQLServerExpress.exe -ErrorAction SilentlyContinue; `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
     }
