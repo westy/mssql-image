@@ -64,8 +64,8 @@ RUN if ($env:DEV_INSTANCENAME -eq 'MSSQLSERVER') { `
     if ($env:TYPE -eq 'exp') { `
         $SqlServiceName = 'MSSQL$SQLEXPRESS'; `
     } `
-    While (!(get-service $SqlServiceName -ErrorAction SilentlyContinue)) { Start-Sleep -Seconds 5 } ; `
-    Stop-Service $SqlServiceName ; `
+    While (!(Get-Service $SqlServiceName -ErrorAction SilentlyContinue)) { Start-Sleep -Seconds 1 }; `
+    Stop-Service $SqlServiceName -ErrorAction SilentlyContinue; `
     $databaseFolder = 'c:\databases'; `
     mkdir $databaseFolder; `
     $SqlWriterServiceName = 'SQLWriter'; `
