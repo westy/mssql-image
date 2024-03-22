@@ -32,6 +32,7 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 USER ContainerAdministrator
 
 RUN $ProgressPreference = 'SilentlyContinue'; `
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}; `
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); `
     choco feature enable -n allowGlobalConfirmation; `
     choco install --no-progress --limit-output vim 7zip sqlpackage; `
