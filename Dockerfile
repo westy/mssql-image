@@ -32,10 +32,10 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 USER ContainerAdministrator
 
 RUN [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}; `
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); `
-    choco feature enable -n allowGlobalConfirmation; `
-    choco install --no-progress 7zip sqlpackage; `
-    Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1; `
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'));
+
+RUN choco install -y --no-progress 7zip sqlpackage;
+RUN Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1; `
     refreshenv;
 
 RUN if (-not [string]::IsNullOrEmpty($env:DEV_ISO)) { `
