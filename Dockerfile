@@ -31,11 +31,15 @@ LABEL org.opencontainers.image.version=$VERSION-$TYPE
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 USER ContainerAdministrator
 
-RUN [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}; `
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; `
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}; `
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'));
 
-# Used to install sqlpackage here, but I think will have to do it when framework version only
 RUN choco install -y --no-progress 7zip
+
+# Only install sqlpackage if framework version
+RUN IF NOT $IMAGENAME == "sdk:8.0" choco install -y --no-progress sqlpackage
+
 RUN Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1; `
     refreshenv;
 
