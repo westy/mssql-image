@@ -46,10 +46,10 @@ RUN if ( $env:IMAGENAME -like 'framework*' ) { `
 RUN if (-not [string]::IsNullOrEmpty($env:DEV_ISO)) { `
         Invoke-WebRequest -UseBasicParsing -Uri $env:DEV_ISO -OutFile c:\SQLServer.iso; `
         mkdir c:\installer; `
-        Mount-DiskImage -ImagePath .\SQLServer.iso; `
-        $mountedDrive = (Get-DiskImage -ImagePath .\SQLServer.iso | Get-Volume).DriveLetter; `
-        Copy-Item -Path '$mountedDrive*\\' -Destination .\installer -Recurse; `
-        Dismount-DiskImage -ImagePath .\SQLServer.iso; `
+        Mount-DiskImage -ImagePath c:\SQLServer.iso; `
+        $mountedDrive = (Get-DiskImage -ImagePath c:\SQLServer.iso | Get-Volume).DriveLetter; `
+        Copy-Item ${mountedDrive}:\* c:\installer -Recurse; `
+        Dismount-DiskImage -ImagePath c:\SQLServer.iso; `
         .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=$env:DEV_INSTANCENAME /SQLCOLLATION=$env:SQL_COLLATION_NAME /FEATURES=SQLEngine,IS /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
         remove-item c:\SQLServer.iso -ErrorAction SilentlyContinue; `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
