@@ -1,7 +1,7 @@
 # escape=`
-ARG IMAGENAME=runtime   # Means can use aspnet base image if needed
+ARG IMAGENAME=framework/runtime:4.8   # Other options I use are framework/aspnet:4.8 if want web support, or sdk:8.0 for .NET 8
 ARG BASE
-FROM mcr.microsoft.com/dotnet/framework/$IMAGENAME:4.8-windowsservercore-$BASE
+FROM mcr.microsoft.com/dotnet/$IMAGENAME-windowsservercore-$BASE
 
 ARG DEV_ISO= `
     EXP_EXE= `
