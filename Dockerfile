@@ -60,6 +60,9 @@ RUN if (-not [string]::IsNullOrEmpty($env:EXP_EXE)) { `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
     }
 
+# Blow the cache from this point
+RUN New-Guid > cache_killer.guid.txt
+
 RUN if ($env:DEV_INSTANCENAME -eq 'MSSQLSERVER') { `
         $SqlServiceName = 'MSSQLSERVER'; `
     } else { `
