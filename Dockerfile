@@ -21,7 +21,8 @@ ENV DEV_ISO=$DEV_ISO `
     accept_eula="_" `
     sa_password_path="C:\ProgramData\Docker\secrets\sa-password" `
     before_startup="C:\before-startup" `
-    after_startup="C:\after-startup"
+    after_startup="C:\after-startup" `
+    IMAGENAME=$IMAGENAME
 
 LABEL org.opencontainers.image.authors="Martyn West, Tobias Fenster"
 LABEL org.opencontainers.image.source="https://github.com/westy/mssql-image"
@@ -31,14 +32,13 @@ LABEL org.opencontainers.image.version=$VERSION-$TYPE
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 USER ContainerAdministrator
 
-RUN Set-ExecutionPolicy Bypass -Scope Process -Force; `
-    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}; `
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'));
-
-RUN choco install -y --no-progress 7zip
-
 # Only install sqlpackage if framework version
-RUN if ( '$IMAGENAME'.StartsWith('framework') ) { choco install -y --no-progress sqlpackage; }
+RUN if ( $env:IMAGENAME.StartsWith('framework') ) { `
+        Set-ExecutionPolicy Bypass -Scope Process -Force; `
+        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}; `
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); `
+        choco install -y --no-progress sqlpackage; `
+    }
 
 RUN Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1; `
     refreshenv;
@@ -46,7 +46,10 @@ RUN Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1; `
 RUN if (-not [string]::IsNullOrEmpty($env:DEV_ISO)) { `
         Invoke-WebRequest -UseBasicParsing -Uri $env:DEV_ISO -OutFile c:\SQLServer.iso; `
         mkdir c:\installer; `
-        7z x -y -oc:\installer .\SQLServer.iso; `
+        Mount-DiskImage -ImagePath .\SQLServer.iso; `
+        $mountedDrive = (Get-DiskImage -ImagePath .\SQLServer.iso | Get-Volume).DriveLetter; `
+        Copy-Item -Path "$mountedDrive*\" -Destination .\installer -Recurse; `
+        Dismount-DiskImage -ImagePath .\SQLServer.iso; `
         .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=$env:DEV_INSTANCENAME /SQLCOLLATION=$env:SQL_COLLATION_NAME /FEATURES=SQLEngine,IS /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
         remove-item c:\SQLServer.iso -ErrorAction SilentlyContinue; `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
