@@ -33,23 +33,24 @@ LABEL org.opencontainers.image.version=$VERSION-$TYPE
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 USER ContainerAdministrator
 
-# Only install sqlpackage if framework version
 RUN if ( $env:IMAGENAME -like 'framework*' ) { `
         Set-ExecutionPolicy Bypass -Scope Process -Force; `
         [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}; `
         Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); `
-        choco install -y --no-progress sqlpackage; `
+        # Only install sqlpackage if framework version
+        choco install -y --no-progress sqlpackage 7zip; `
         Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1; `
         refreshenv; `
+    } else { `
+        # Install 7zip. Cannot use choco since chocolatey requires .NET 4.8 which the net8.0 image does not have
+        Invoke-WebRequest -UseBasicParsing -Uri https://www.7-zip.org/a/7z2408-x64.exe -OutFile 7zip_Installer.exe; `
+        .\7zip_Installer.exe /S; `
     }
 
 RUN if (-not [string]::IsNullOrEmpty($env:DEV_ISO)) { `
         Invoke-WebRequest -UseBasicParsing -Uri $env:DEV_ISO -OutFile c:\SQLServer.iso; `
         mkdir c:\installer; `
-        Mount-DiskImage -ImagePath c:\SQLServer.iso; `
-        $mountedDrive = (Get-DiskImage -ImagePath c:\SQLServer.iso | Get-Volume).DriveLetter; `
-        Copy-Item ${mountedDrive}:\* c:\installer -Recurse; `
-        Dismount-DiskImage -ImagePath c:\SQLServer.iso; `
+        7z x -y -oc:\installer .\SQLServer.iso; `
         .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=$env:DEV_INSTANCENAME /SQLCOLLATION=$env:SQL_COLLATION_NAME /FEATURES=SQLEngine,IS /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
         remove-item c:\SQLServer.iso -ErrorAction SilentlyContinue; `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
