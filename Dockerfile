@@ -38,7 +38,7 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; `
 RUN choco install -y --no-progress 7zip
 
 # Only install sqlpackage if framework version
-RUN if ( "$IMAGENAME".StartsWith("framework") ) { choco install -y --no-progress sqlpackage; }
+RUN if ( '$IMAGENAME'.StartsWith('framework') ) { choco install -y --no-progress sqlpackage; }
 
 RUN Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1; `
     refreshenv;
