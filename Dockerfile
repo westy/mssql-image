@@ -43,14 +43,15 @@ RUN if ( $env:IMAGENAME -like 'framework*' ) { `
         refreshenv; `
     } else { `
         # Install 7zip. Cannot use choco since chocolatey requires .NET 4.8 which the net8.0 image does not have
-        Invoke-WebRequest -UseBasicParsing -Uri https://www.7-zip.org/a/7z2408-x64.exe -OutFile 7zip_Installer.exe; `
-        .\7zip_Installer.exe /S; `
+        Write-Host ('Installing 7-zip from installer...') ; `
+        Invoke-WebRequest -UseBasicParsing -Uri https://www.7-zip.org/a/7z2408-x64.exe -OutFile .\7zip_Installer.exe; `
+        .\7zip_Installer.exe /S /D="C:\7-Zip"; `
     }
 
 RUN if (-not [string]::IsNullOrEmpty($env:DEV_ISO)) { `
         Invoke-WebRequest -UseBasicParsing -Uri $env:DEV_ISO -OutFile c:\SQLServer.iso; `
         mkdir c:\installer; `
-        7z x -y -oc:\installer .\SQLServer.iso; `
+        \7-Zip\7z x -y -oc:\installer .\SQLServer.iso; `
         .\installer\setup.exe /q /ACTION=Install /INSTANCENAME=$env:DEV_INSTANCENAME /SQLCOLLATION=$env:SQL_COLLATION_NAME /FEATURES=SQLEngine,IS /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS; `
         remove-item c:\SQLServer.iso -ErrorAction SilentlyContinue; `
         remove-item -recurse -force c:\installer -ErrorAction SilentlyContinue; `
