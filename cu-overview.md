@@ -1,3 +1,6 @@
+# 2019 CU 30
+15.0.4415.2 and https://download.microsoft.com/download/6/e/7/6e72dddf-dfa4-4889-bc3d-e5d3a0fd11ce/SQLServer2019-KB5049235-x64.exe
+
 # 2019 CU 29
 15.0.4405.4 and https://download.microsoft.com/download/6/e/7/6e72dddf-dfa4-4889-bc3d-e5d3a0fd11ce/SQLServer2019-KB5046365-x64.exe
 
